@@ -32,13 +32,13 @@ def sanitize_filename(filename):
     # Menghapus karakter keyboard yang illegal untuk file Windows
     return re.sub(r'[\\/*?:"<>|]', "", filename)
 
+# fuzzy yeha
 def fuzzy_get(data, key):
-    """Get the closest matching key from data dict."""
     keys = list(data.keys())
     match = difflib.get_close_matches(key, keys, n=1, cutoff=0.6)
     if match:
         return data[match[0]]
-    return ""  # Default if no match found
+    return ""
 
 def rename_pdfs_in_folder(directory):
     for filename in os.listdir(directory):
@@ -54,7 +54,7 @@ def rename_pdfs_in_folder(directory):
             referensi = fuzzy_get(data, "Referensi").replace("/", "").replace("-", "")
             nama = fuzzy_get(data, "Nama")
 
-            # print(text)
+            print(text)
 
             # Variabel nama file tersebut dengan aman, ganti variabel sesuai yang kalian mau
             new_filename = f"{kode} - {referensi} - {nama}.pdf"
