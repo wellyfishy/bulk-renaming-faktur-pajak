@@ -2,6 +2,7 @@ import fitz  # PyMuPDF
 import os
 import re
 import sys
+import difflib
 
 def resource_path(relative_path):
     """Mencari path ke resource ketika menjalankan script python atau exe."""
@@ -31,6 +32,14 @@ def sanitize_filename(filename):
     # Menghapus karakter keyboard yang illegal untuk file Windows
     return re.sub(r'[\\/*?:"<>|]', "", filename)
 
+def fuzzy_get(data, key):
+    """Get the closest matching key from data dict."""
+    keys = list(data.keys())
+    match = difflib.get_close_matches(key, keys, n=1, cutoff=0.6)
+    if match:
+        return data[match[0]]
+    return ""  # Default if no match found
+
 def rename_pdfs_in_folder(directory):
     for filename in os.listdir(directory):
         if filename.lower().endswith(".pdf"):
@@ -41,14 +50,15 @@ def rename_pdfs_in_folder(directory):
             data = extract_all_key_value_pairs(text)
 
             # Ganti variabel sesuai yang kalian mau
-            kode = data.get("Kode dan Nomor Seri Faktur Pajak", "")
-            referensi = data.get("Referensi", "").replace("/", "").replace("-", "")
-            nama = data.get("Nama", "")
+            kode = fuzzy_get(data, "Kode dan Nomor Seri Faktur Pajak")
+            referensi = fuzzy_get(data, "Referensi").replace("/", "").replace("-", "")
+            nama = fuzzy_get(data, "Nama")
 
-            print(data)
+            # print(text)
 
             # Variabel nama file tersebut dengan aman, ganti variabel sesuai yang kalian mau
             new_filename = f"{kode} - {referensi} - {nama}.pdf"
+            print(new_filename)
             new_filename = sanitize_filename(new_filename)
 
             new_path = os.path.join(directory, new_filename)
