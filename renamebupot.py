@@ -15,15 +15,30 @@ def resource_path(relative_path):
 
     return os.path.join(base_path, relative_path)
 
-def get_unique_filename(directory, filename):
-    base, ext = os.path.splitext(filename)
-    counter = 1
-    new_filename = filename
+def get_unique_filename(directory, desired_filename, current_filename=None):
+    base, ext = os.path.splitext(desired_filename)
 
+    # Strip "(n)" suffix for clean base
+    match = re.match(r"^(.*?)( \((\d+)\))?$", base)
+    if match:
+        clean_base = match.group(1)
+    else:
+        clean_base = base
+
+    # Case 1: if desired == current, just keep it
+    if current_filename and desired_filename == current_filename:
+        return current_filename
+
+    # Case 2: if desired exists but is not current, add suffix
+    counter = 1
+    new_filename = f"{clean_base}{ext}"
     while os.path.exists(os.path.join(directory, new_filename)):
-        new_filename = f"{base} ({counter}){ext}"
+        # if the existing file is ourself, allow it
+        if current_filename and new_filename == current_filename:
+            return current_filename
+        new_filename = f"{clean_base} ({counter}){ext}"
         counter += 1
-    
+
     return new_filename
 
 def extract_all_text_from_pdf(pdf_path):
@@ -92,8 +107,12 @@ def rename_pdfs_in_folder(directory):
             pairs = extract_above_and_date(text)
 
             # Ganti variabel sesuai yang kalian mau
-            kode = pairs[0][0]
-            masa_pajak = pairs[0][1]
+            if pairs:
+                kode = pairs[0][0] if pairs[0][0] else ""
+                masa_pajak = pairs[0][1] if pairs[0][1] else ""
+            else:
+                kode = ""
+                masa_pajak = ""
             nomor = fuzzy_get(data, "Nomor Dokumen")
             nama_pemotong = fuzzy_get(data, "PEMUNGUT PPh")
 
@@ -103,7 +122,7 @@ def rename_pdfs_in_folder(directory):
             new_filename = f"{kode} - {masa_pajak} - {nomor} - {nama_pemotong}.pdf"
             new_filename = sanitize_filename(new_filename)
 
-            new_filename = get_unique_filename(directory, new_filename)
+            new_filename = get_unique_filename(directory, new_filename, filename)
             new_path = os.path.join(directory, new_filename)
 
             new_path = os.path.join(directory, new_filename)
