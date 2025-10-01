@@ -83,25 +83,39 @@ def fuzzy_get(data, key):
         return values
     return ""
 
+def extract_above_and_date(text):
+    lines = text.splitlines()
+    results = []
+
+    for i, line in enumerate(lines):
+        if re.match(r"\b\d{1,2}-\d{4}\b", line):
+            date = line.strip()
+            above = lines[i-1].strip() if i > 0 else ""
+            results.append((above, date))
+    return results
+
 def rename_pdfs_in_folder(directory):
     for filename in os.listdir(directory):
         if filename.lower().endswith(".pdf"):
             path = os.path.join(directory, filename)
             print(f"Processing: {filename}")
 
+
             text = extract_all_text_from_pdf(path)
             data = extract_all_key_value_pairs(text)
 
+            pairs = extract_above_and_date(text)
+
             # Ganti variabel sesuai yang kalian mau
-            kode = fuzzy_get(data, "Kode dan Nomor Seri Faktur Pajak")
-            referensi = fuzzy_get(data, "Referensi").replace("/", "").replace("-", "")
-            nama = fuzzy_get(data, "Nama")
+            kode = pairs[0][0]
+            masa_pajak = pairs[0][1]
+            nomor = fuzzy_get(data, "Nomor Dokumen")
+            nama_pemotong = fuzzy_get(data, "PEMUNGUT PPh")
 
             print(data)
 
             # Variabel nama file tersebut dengan aman, ganti variabel sesuai yang kalian mau
-            new_filename = f"{kode} - {referensi} - {nama}.pdf"
-            print(new_filename)
+            new_filename = f"{kode} - {masa_pajak} - {nomor} - {nama_pemotong}.pdf"
             new_filename = sanitize_filename(new_filename)
 
             new_filename = get_unique_filename(directory, new_filename, filename)

@@ -123,7 +123,6 @@ def rename_pdfs_in_folder(directory):
             new_filename = sanitize_filename(new_filename)
 
             new_filename = get_unique_filename(directory, new_filename, filename)
-            new_path = os.path.join(directory, new_filename)
 
             new_path = os.path.join(directory, new_filename)
 
